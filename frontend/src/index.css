@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-slate-950 text-slate-100 font-sans antialiased; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-slate-900; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-700 rounded-full; }
+}
+
+@layer components {
+  .glass-card { @apply bg-slate-900/80 backdrop-blur-xl border border-slate-800/50 rounded-2xl; }
+  .btn-primary { @apply bg-brand-600 hover:bg-brand-500 text-white font-medium px-5 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-brand-600/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-secondary { @apply bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium px-5 py-2.5 rounded-xl border border-slate-700/50 transition-all duration-200 active:scale-[0.98]; }
+  .btn-danger { @apply bg-red-600/20 hover:bg-red-600/30 text-red-400 font-medium px-5 py-2.5 rounded-xl border border-red-600/30 transition-all; }
+  .btn-success { @apply bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 font-medium px-5 py-2.5 rounded-xl border border-emerald-600/30 transition-all; }
+  .input-field { @apply w-full bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500/40 transition-all; }
+  .badge-active { @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20; }
+  .badge-cancelled { @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/20; }
+  .badge-paid { @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20; }
+  .badge-pending { @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/20; }
+}

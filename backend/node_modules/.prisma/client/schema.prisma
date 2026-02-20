@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+}
+
+model Student {
+  id                 String       @id @default(uuid())
+  registrationNumber String       @unique @map("registration_number")
+  name               String
+  age                Int
+  address            String
+  phone              String
+  photoUrl           String?      @map("photo_url")
+  documents          Document[]
+  enrollments        Enrollment[]
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+
+  @@map("students")
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  studentId String   @map("student_id")
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  fileName  String   @map("file_name")
+  fileUrl   String   @map("file_url")
+  fileType  String   @map("file_type")
+  fileSize  Int      @map("file_size")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("documents")
+}
+
+model Classroom {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  maxCapacity Int          @map("max_capacity")
+  enrollments Enrollment[]
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@map("classrooms")
+}
+
+model Enrollment {
+  id          String           @id @default(uuid())
+  studentId   String           @map("student_id")
+  student     Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classroomId String           @map("classroom_id")
+  classroom   Classroom        @relation(fields: [classroomId], references: [id])
+  status      EnrollmentStatus @default(ACTIVE)
+  payments    Payment[]
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  @@unique([studentId, classroomId])
+  @@map("enrollments")
+}
+
+model Payment {
+  id           String        @id @default(uuid())
+  enrollmentId String        @map("enrollment_id")
+  enrollment   Enrollment    @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  status       PaymentStatus @default(PENDING)
+  amount       Float         @default(0)
+  dueDate      DateTime?     @map("due_date")
+  paidAt       DateTime?     @map("paid_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("payments")
+}
