@@ -1,148 +1,84 @@
-# Sistema de Matrícula - Enrollment Management System
+# Sistema de Matrícula Escolar v2.1
 
-Sistema completo para gerenciamento de matrículas, controle de pagamento e controle de acesso via leitor de crachá USB.
-
-## Arquitetura
-
-```
-backend/
-├── src/
-│   ├── config/          # Configurações (env, prisma client)
-│   ├── controllers/     # Camada de apresentação (HTTP)
-│   ├── services/        # Regras de negócio
-│   ├── repositories/    # Acesso a dados (Prisma)
-│   ├── middlewares/      # Error handler, upload (Multer)
-│   ├── validators/       # Schemas Zod
-│   ├── routes/          # Definição de rotas Express
-│   ├── types/           # TypeScript interfaces/DTOs
-│   ├── utils/           # Helpers (AppError, response)
-│   ├── app.ts           # Express app setup
-│   └── server.ts        # Bootstrap
-├── prisma/
-│   ├── schema.prisma    # Modelos do banco
-│   └── seed.ts          # Dados iniciais
-└── uploads/             # Arquivos enviados
-
-frontend/
-├── src/
-│   ├── components/      # Layout, Modal, etc
-│   ├── pages/           # Dashboard, Students, Enrollments, Payments, Access, Classrooms
-│   ├── services/        # API client (Axios)
-│   └── types/           # TypeScript types
-```
+Sistema completo de gestão de matrículas para academias e escolas, com controle de acesso via código de barras, frequência, pagamentos e turmas.
 
 ## Stack
 
-| Camada   | Tecnologia                          |
-|----------|-------------------------------------|
-| Frontend | React 19, TypeScript, Tailwind CSS  |
-| Backend  | Node.js, Express, TypeScript        |
-| ORM      | Prisma                              |
-| Banco    | PostgreSQL                          |
-| Validação| Zod                                 |
-| Upload   | Multer                              |
+- **Frontend:** React 19 + TypeScript + Tailwind CSS + Vite
+- **Backend:** Node.js + Express + TypeScript + Prisma ORM
+- **Banco:** PostgreSQL
 
-## Regras de Negócio
+## Funcionalidades
 
-- **Matrícula duplicada**: Não permite cadastrar matrícula com mesmo número
-- **Limite de vagas**: Valida capacidade máxima da turma antes de matricular
-- **Controle de acesso**: Só libera se matrícula ATIVA **E** pagamento PAGO
-- **Upload**: Máximo 5MB, aceita JPEG/PNG/WebP (fotos) e PDF/DOC (documentos)
+- Cadastro de alunos com geração automática de código de barras
+- Controle de acesso via leitura de código de barras
+- Registro automático de frequência
+- Gestão de turmas com capacidade e visualização de alunos
+- Controle de pagamentos (PIX, Cartão Crédito/Débito, Dinheiro, Boleto)
+- Isenção de pagamento com motivo
+- Aula experimental com data de expiração
+- Validade de matrícula
+- Dashboard de frequência com gráficos
+- Ranking de frequência dos alunos
+- Histórico individual de presenças
+- Impressão de código de barras
+- Layout responsivo (desktop e mobile)
 
-## Setup - Pré-requisitos
+## Instalação
 
-1. **Node.js** >= 18
-2. **PostgreSQL** rodando na porta 5432
-3. Criar banco: `CREATE DATABASE enrollment_db;`
+### Pré-requisitos
+- Node.js 18+
+- PostgreSQL 14+
 
-## Setup - Backend
-
+### Backend
 ```bash
 cd backend
 npm install
-```
-
-Edite o `.env` com suas credenciais do PostgreSQL:
-```
-DATABASE_URL="postgresql://SEU_USER:SUA_SENHA@localhost:5432/enrollment_db?schema=public"
-```
-
-Execute as migrations e seed:
-```bash
+cp .env.example .env  # configure DATABASE_URL
+npx prisma db push
 npx prisma generate
-npx prisma migrate dev --name init
-npx tsx prisma/seed.ts
-```
-
-Inicie o servidor:
-```bash
 npm run dev
 ```
 
-API disponível em: `http://localhost:3333/api`
-
-## Setup - Frontend
-
+### Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Acesse: `http://localhost:5173`
+## Variáveis de Ambiente
 
-## Endpoints da API
+### Backend (.env)
+```
+DATABASE_URL=postgresql://usuario:senha@localhost:5432/enrollment_db
+PORT=3333
+```
 
-### Students
-| Método | Rota                        | Descrição           |
-|--------|-----------------------------|---------------------|
-| GET    | /api/students               | Listar (paginado)   |
-| GET    | /api/students/:id           | Buscar por ID       |
-| POST   | /api/students               | Criar aluno         |
-| PUT    | /api/students/:id           | Atualizar aluno     |
-| DELETE | /api/students/:id           | Remover aluno       |
-| POST   | /api/students/:id/photo     | Upload foto         |
-| POST   | /api/students/:id/documents | Upload documento    |
-| GET    | /api/students/:id/documents | Listar documentos   |
+## Estrutura
+```
+enrollment-system/
+ backend/
+    prisma/          # Schema do banco
+    src/
+       config/      # Prisma client
+       controllers/ # Controllers Express
+       repositories/# Acesso ao banco
+       routes/      # Rotas da API
+       services/    # Lógica de negócio
+       utils/       # Helpers (barcode, errors, response)
+       validators/  # Schemas Zod
+    uploads/         # Fotos dos alunos
+ frontend/
+    src/
+       components/  # Componentes reutilizáveis
+       pages/       # Páginas da aplicação
+       services/    # API client (Axios)
+       types/       # TypeScript types
+    public/
+ README.md
+```
 
-### Enrollments
-| Método | Rota                             | Descrição          |
-|--------|----------------------------------|---------------------|
-| GET    | /api/enrollments                 | Listar              |
-| POST   | /api/enrollments                 | Criar matrícula     |
-| PATCH  | /api/enrollments/:id/status      | Alterar status      |
+## Licença
 
-### Payments
-| Método | Rota                           | Descrição           |
-|--------|--------------------------------|---------------------|
-| GET    | /api/payments                  | Listar              |
-| POST   | /api/payments                  | Criar pagamento     |
-| PATCH  | /api/payments/:id/status       | Alterar status      |
-
-### Access (Badge Reader)
-| Método | Rota                            | Descrição           |
-|--------|---------------------------------|---------------------|
-| GET    | /api/access/:registrationNumber | Verificar acesso    |
-
-### Classrooms
-| Método | Rota                | Descrição          |
-|--------|---------------------|---------------------|
-| GET    | /api/classrooms     | Listar turmas       |
-| POST   | /api/classrooms     | Criar turma         |
-
-## Dados de Teste (Seed)
-
-| Matrícula  | Aluno   | Pagamento | Acesso       |
-|------------|---------|-----------|--------------|
-| MAT-0001   | João    | PAGO      | 🟢 AUTORIZADO |
-| MAT-0002   | Maria   | PENDENTE  | 🔴 BLOQUEADO  |
-| MAT-0003   | Carlos  | PAGO      | 🟢 AUTORIZADO |
-
-## Leitor de Crachá USB
-
-O leitor funciona como teclado. Na tela `/access`:
-1. O campo de input fica sempre focado
-2. O leitor "digita" o código do crachá
-3. Ao final envia Enter automaticamente
-4. O sistema busca o aluno e exibe status visual
-5. Resultado limpa automaticamente após 8 segundos
+MIT
