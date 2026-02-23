@@ -25,8 +25,13 @@ model Student {
   address            String
   phone              String
   photoUrl           String?      @map("photo_url")
+  qrCode             String       @unique @map("qr_code") @default(uuid())
+  isTrial            Boolean      @default(false) @map("is_trial")
+  trialExpiresAt     DateTime?    @map("trial_expires_at")
   documents          Document[]
   enrollments        Enrollment[]
+  attendances        Attendance[]
+  feedbacks          Feedback[]
   createdAt          DateTime     @default(now()) @map("created_at")
   updatedAt          DateTime     @updatedAt @map("updated_at")
 
@@ -64,6 +69,7 @@ model Enrollment {
   classroomId String           @map("classroom_id")
   classroom   Classroom        @relation(fields: [classroomId], references: [id])
   status      EnrollmentStatus @default(ACTIVE)
+  validUntil  DateTime?        @map("valid_until")
   payments    Payment[]
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
@@ -77,11 +83,35 @@ model Payment {
   enrollmentId String        @map("enrollment_id")
   enrollment   Enrollment    @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   status       PaymentStatus @default(PENDING)
+  method       String?       @map("method")
+  isExempt     Boolean       @default(false) @map("is_exempt")
+  exemptReason String?       @map("exempt_reason")
   amount       Float         @default(0)
-  dueDate      DateTime?     @map("due_date")
   paidAt       DateTime?     @map("paid_at")
+  validUntil   DateTime?     @map("valid_until")
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
   @@map("payments")
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  studentId String   @map("student_id")
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("attendances")
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  studentId String   @map("student_id")
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  rating    Int      @default(5)
+  comment   String   @default("")
+  author    String   @default("Admin")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("feedbacks")
 }

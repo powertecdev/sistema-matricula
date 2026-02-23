@@ -1,43 +1,72 @@
 import axios from "axios";
-import type { Student, Enrollment, Payment, Classroom, DocumentFile, AccessResult, ApiResponse } from "../types";
+import type { Student, Enrollment, Payment, Classroom, AccessResult, Attendance, ApiResponse } from "../types";
 
-const api = axios.create({ baseURL: "/api", headers: { "Content-Type": "application/json" } });
+const api = axios.create({ baseURL: "/api" });
 
 export const studentApi = {
-  list: (page = 1, limit = 10, search = "") =>
-    api.get<ApiResponse<Student[]>>(`/students?page=${page}&limit=${limit}&search=${search}`),
+  list: (p=1,l=10,s="") => api.get<ApiResponse<Student[]>>(`/students?page=${p}&limit=${l}&search=${s}`),
   getById: (id: string) => api.get<ApiResponse<Student>>(`/students/${id}`),
-  create: (data: any) => api.post<ApiResponse<Student>>("/students", data),
-  update: (id: string, data: any) => api.put<ApiResponse<Student>>(`/students/${id}`, data),
+  create: (d: any) => api.post<ApiResponse<Student>>("/students", d),
+  update: (id: string, d: any) => api.put<ApiResponse<Student>>(`/students/${id}`, d),
   delete: (id: string) => api.delete(`/students/${id}`),
-  uploadPhoto: (id: string, file: File) => {
-    const fd = new FormData(); fd.append("photo", file);
-    return api.post<ApiResponse<Student>>(`/students/${id}/photo`, fd, { headers: { "Content-Type": "multipart/form-data" } });
-  },
-  uploadDocument: (id: string, file: File) => {
-    const fd = new FormData(); fd.append("document", file);
-    return api.post<ApiResponse<DocumentFile>>(`/students/${id}/documents`, fd, { headers: { "Content-Type": "multipart/form-data" } });
-  },
-  getDocuments: (id: string) => api.get<ApiResponse<DocumentFile[]>>(`/students/${id}/documents`),
+  uploadPhoto: (id: string, f: File) => { const fd = new FormData(); fd.append("photo", f); return api.post(`/students/${id}/photo`, fd, { headers: { "Content-Type": "multipart/form-data" } }); },
+  getQRCode: (id: string) => api.get<ApiResponse<{ qrCode: string; qrCodeImage: string; studentName: string; registrationNumber: string }>>(`/students/${id}/qrcode`),
 };
 
 export const enrollmentApi = {
-  list: (page = 1, limit = 10) => api.get<ApiResponse<Enrollment[]>>(`/enrollments?page=${page}&limit=${limit}`),
-  create: (data: { studentId: string; classroomId: string }) => api.post<ApiResponse<Enrollment>>("/enrollments", data),
-  updateStatus: (id: string, status: string) => api.patch<ApiResponse<Enrollment>>(`/enrollments/${id}/status`, { status }),
+  list: (p=1,l=10) => api.get<ApiResponse<Enrollment[]>>(`/enrollments?page=${p}&limit=${l}`),
+  create: (d: { studentId: string; classroomId: string }) => api.post<ApiResponse<Enrollment>>("/enrollments", d),
+  updateStatus: (id: string, s: string) => api.patch<ApiResponse<Enrollment>>(`/enrollments/${id}/status`, { status: s }),
 };
 
 export const paymentApi = {
-  list: (page = 1, limit = 100) => api.get<ApiResponse<Payment[]>>(`/payments?page=${page}&limit=${limit}`),
-  create: (data: { enrollmentId: string; amount: number }) => api.post<ApiResponse<Payment>>("/payments", data),
-  updateStatus: (id: string, status: string) => api.patch<ApiResponse<Payment>>(`/payments/${id}/status`, { status }),
+  list: (p=1,l=100) => api.get<ApiResponse<Payment[]>>(`/payments?page=${p}&limit=${l}`),
+  create: (d: { enrollmentId: string; amount: number; validUntil?: string }) => api.post<ApiResponse<Payment>>("/payments", d),
+  updateStatus: (id: string, s: string, method?: string) => api.patch<ApiResponse<Payment>>(`/payments/${id}/status`, { status: s, method }),
 };
 
 export const accessApi = {
-  check: (reg: string) => api.get<ApiResponse<AccessResult>>(`/access/${reg}`),
+  check: (qr: string) => api.get<ApiResponse<AccessResult>>(`/access/${qr}`),
 };
 
 export const classroomApi = {
   list: () => api.get<ApiResponse<Classroom[]>>("/classrooms"),
-  create: (data: { name: string; maxCapacity: number }) => api.post<ApiResponse<Classroom>>("/classrooms", data),
+  create: (d: { name: string; maxCapacity: number }) => api.post<ApiResponse<Classroom>>("/classrooms", d),
+};
+
+export const attendanceApi = {
+  listByStudent: (sid: string, p = 1) =>
+    api.get<ApiResponse<Attendance[]>>(`/attendance/student/${sid}?page=${p}&limit=20`),
+
+  getByStudent: (studentId: string, page = 1, limit = 20) =>
+    api.get(`/attendance/student/${studentId}?page=${page}&limit=${limit}`),
+
+  getCountByStudent: (studentId: string) =>
+    api.get(`/attendance/student/${studentId}/count`),
+
+  getSummary: () =>
+    api.get("/attendance/summary"),
+
+  getDaily: (days = 30) =>
+    api.get(`/attendance/daily?days=${days}`),
+
+  getStats: () =>
+    api.get("/attendance/stats"),
+};
+// ---- Feedback API ----
+export const feedbackApi = {
+  list: (page = 1, limit = 20) =>
+    api.get(`/feedback?page=${page}&limit=${limit}`),
+
+  listByStudent: (studentId: string) =>
+    api.get(`/feedback/student/${studentId}`),
+
+  create: (data: { studentId: string; rating: number; comment: string; author?: string }) =>
+    api.post("/feedback", data),
+
+  delete: (id: string) =>
+    api.delete(`/feedback/${id}`),
+
+  getStudentAverage: (studentId: string) =>
+    api.get(`/feedback/student/${studentId}/average`),
 };

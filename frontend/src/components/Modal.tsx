@@ -1,29 +1,109 @@
-import { ReactNode, useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
-interface Props { isOpen: boolean; onClose: () => void; title: string; children: ReactNode; size?: "sm" | "md" | "lg"; }
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+  size?: "sm" | "md" | "lg" | "xl";
+}
 
-export default function Modal({ isOpen, onClose, title, children, size = "md" }: Props) {
+const sizeMap: Record<string, string> = {
+  sm: "sm:max-w-sm",
+  md: "sm:max-w-lg",
+  lg: "sm:max-w-2xl",
+  xl: "sm:max-w-4xl",
+};
+
+export default function Modal({ isOpen, onClose, title, children, size = "md" }: ModalProps) {
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [isOpen]);
+    if (!isOpen) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handler);
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handler);
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
-  const w = { sm: "max-w-md", md: "max-w-lg", lg: "max-w-2xl" }[size];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative glass-card ${w} w-full mx-4 p-6 animate-scale-in shadow-2xl`}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-display font-semibold text-white">{title}</h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors">
-            <X className="w-5 h-5" />
+  return createPortal(
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 99999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.75)",
+          backdropFilter: "blur(4px)",
+        }}
+        onClick={onClose}
+      />
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          maxHeight: "85vh",
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: "#0f172a",
+          border: "1px solid rgba(30,41,59,0.5)",
+          borderRadius: "16px",
+          boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+          animation: "modalIn 0.25s ease-out",
+        }}
+        className={sizeMap[size] || sizeMap.md}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "16px 20px",
+            borderBottom: "1px solid rgba(30,41,59,0.5)",
+            flexShrink: 0,
+          }}
+        >
+          <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: "16px" }}>{title}</h2>
+          <button type="button" onClick={onClose} style={{ padding: "8px", borderRadius: "8px", background: "transparent", border: "none", cursor: "pointer", flexShrink: 0 }} aria-label="Fechar">
+            <X style={{ width: "20px", height: "20px", color: "#94a3b8" }} />
           </button>
         </div>
-        {children}
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            minHeight: 0,
+            padding: "16px 20px",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          {children}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

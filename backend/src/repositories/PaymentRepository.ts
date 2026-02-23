@@ -5,17 +5,8 @@ export class PaymentRepository {
   async findAll(page: number, limit: number) {
     const [payments, total] = await Promise.all([
       prisma.payment.findMany({
-        include: {
-          enrollment: {
-            include: {
-              student: { select: { id: true, registrationNumber: true, name: true } },
-              classroom: { select: { id: true, name: true } },
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-        skip: (page - 1) * limit,
-        take: limit,
+        include: { enrollment: { include: { student: { select: { id: true, registrationNumber: true, name: true } }, classroom: { select: { id: true, name: true } } } } },
+        orderBy: { createdAt: "desc" }, skip: (page - 1) * limit, take: limit,
       }),
       prisma.payment.count(),
     ]);
@@ -23,20 +14,24 @@ export class PaymentRepository {
   }
 
   async findById(id: string) {
-    return prisma.payment.findUnique({
-      where: { id },
-      include: { enrollment: { include: { student: true, classroom: true } } },
+    return prisma.payment.findUnique({ where: { id }, include: { enrollment: { include: { student: true, classroom: true } } } });
+  }
+
+  async create(data: { enrollmentId: string; amount: number; validUntil?: Date; method?: string }) {
+    return prisma.payment.create({
+      data: {
+        enrollmentId: data.enrollmentId,
+        amount: data.amount,
+        validUntil: data.validUntil,
+        method: data.method,
+        isExempt: data.isExempt || false,
+        exemptReason: data.exemptReason,
+        status: "PENDING",
+      },
     });
   }
 
-  async create(data: { enrollmentId: string; amount: number; dueDate?: Date }) {
-    return prisma.payment.create({ data: { ...data, status: "PENDING" } });
-  }
-
-  async updateStatus(id: string, status: PaymentStatus) {
-    return prisma.payment.update({
-      where: { id },
-      data: { status, paidAt: status === "PAID" ? new Date() : null },
-    });
+  async updateStatus(id: string, status: PaymentStatus, method?: string) {
+    return prisma.payment.update({ where: { id }, data: { status, paidAt: status === "PAID" ? new Date() : null, ...(method ? { method } : {}) } });
   }
 }

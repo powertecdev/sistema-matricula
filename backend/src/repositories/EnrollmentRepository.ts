@@ -9,7 +9,7 @@ export class EnrollmentRepository {
         include: {
           student: { select: { id: true, registrationNumber: true, name: true, photoUrl: true } },
           classroom: { select: { id: true, name: true } },
-          payments: { select: { id: true, status: true, amount: true } },
+          payments: { select: { id: true, status: true, amount: true, method: true, isExempt: true, exemptReason: true, validUntil: true } },
         },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
@@ -27,7 +27,7 @@ export class EnrollmentRepository {
     });
   }
 
-  async create(data: CreateEnrollmentDTO) {
+  async create(data: CreateEnrollmentDTO & { validUntil?: Date }) {
     return prisma.enrollment.create({
       data,
       include: {

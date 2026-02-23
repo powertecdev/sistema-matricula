@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, BookOpen, CreditCard, ScanLine, School } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, CreditCard, ScanLine, School, CalendarCheck, MessageSquare } from "lucide-react";
 
 const nav = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -7,6 +7,8 @@ const nav = [
   { path: "/enrollments", label: "Matrículas", icon: BookOpen },
   { path: "/payments", label: "Pagamentos", icon: CreditCard },
   { path: "/classrooms", label: "Turmas", icon: School },
+  { path: "/attendance", label: "Frequência", icon: CalendarCheck },
+  { path: "/feedback", label: "Feedback", icon: MessageSquare },
 ];
 
 export default function Layout() {

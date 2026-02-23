@@ -3,3 +3,4 @@ export { EnrollmentRepository } from "./EnrollmentRepository";
 export { PaymentRepository } from "./PaymentRepository";
 export { ClassroomRepository } from "./ClassroomRepository";
 export { DocumentRepository } from "./DocumentRepository";
+export { AttendanceRepository } from "./AttendanceRepository";

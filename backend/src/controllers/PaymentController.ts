@@ -21,7 +21,7 @@ export class PaymentController {
   }
 
   async updateStatus(req: Request, res: Response) {
-    const { status } = updatePaymentSchema.parse(req.body);
-    sendSuccess(res, await service.updateStatus(req.params.id, status), "Pagamento atualizado");
+    const { status, method } = updatePaymentSchema.parse(req.body);
+    sendSuccess(res, await service.updateStatus(req.params.id, status, method), "Pagamento atualizado");
   }
 }
