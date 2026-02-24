@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PaymentService } from "../services";
+import { PaymentService } from "../services/PaymentService";
 import { createPaymentSchema, updatePaymentSchema, paginationSchema } from "../validators";
 import { sendSuccess, sendCreated } from "../utils/response";
 
@@ -11,17 +11,14 @@ export class PaymentController {
     const result = await service.list(page, limit);
     sendSuccess(res, result.payments, undefined, 200, result.meta);
   }
-
   async getById(req: Request, res: Response) {
-    sendSuccess(res, await service.getById(req.params.id));
+    sendSuccess(res, await service.getById(String(req.params.id)));
   }
-
   async create(req: Request, res: Response) {
-    sendCreated(res, await service.create(createPaymentSchema.parse(req.body)), "Pagamento criado");
+    sendCreated(res, await service.create(createPaymentSchema.parse(req.body) as any), "Pagamento criado");
   }
-
   async updateStatus(req: Request, res: Response) {
-    const { status, method } = updatePaymentSchema.parse(req.body);
-    sendSuccess(res, await service.updateStatus(req.params.id, status, method), "Pagamento atualizado");
+    const { status } = updatePaymentSchema.parse(req.body);
+    sendSuccess(res, await service.updateStatus(String(req.params.id), status), "Pagamento atualizado");
   }
 }

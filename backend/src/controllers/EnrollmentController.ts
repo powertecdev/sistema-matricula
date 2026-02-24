@@ -11,17 +11,14 @@ export class EnrollmentController {
     const result = await service.list(page, limit);
     sendSuccess(res, result.enrollments, undefined, 200, result.meta);
   }
-
   async getById(req: Request, res: Response) {
-    sendSuccess(res, await service.getById(req.params.id));
+    sendSuccess(res, await service.getById(String(req.params.id)));
   }
-
   async create(req: Request, res: Response) {
-    sendCreated(res, await service.create(createEnrollmentSchema.parse(req.body)), "Matrícula criada");
+    sendCreated(res, await service.create(createEnrollmentSchema.parse(req.body) as any), "Matrícula criada");
   }
-
   async updateStatus(req: Request, res: Response) {
     const { status } = updateEnrollmentSchema.parse(req.body);
-    sendSuccess(res, await service.updateStatus(req.params.id, status), "Status atualizado");
+    sendSuccess(res, await service.updateStatus(String(req.params.id), status), "Status atualizado");
   }
 }
