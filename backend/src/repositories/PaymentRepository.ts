@@ -17,7 +17,7 @@ export class PaymentRepository {
     return prisma.payment.findUnique({ where: { id }, include: { enrollment: { include: { student: true, classroom: true } } } });
   }
 
-  async create(data: { enrollmentId: string; amount: number; validUntil?: Date; method?: string }) {
+  async create(data: { enrollmentId: string; amount: number; validUntil?: Date; method?: string; isExempt?: boolean; exemptReason?: string }) {
     return prisma.payment.create({
       data: {
         enrollmentId: data.enrollmentId,

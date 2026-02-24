@@ -18,4 +18,4 @@ export const updateEnrollmentSchema = z.object({ status: z.enum(["ACTIVE", "CANC
 export const createPaymentSchema = z.object({ enrollmentId: z.string().uuid(), amount: z.number({ coerce: true }).min(0), validUntil: z.string().optional(), method: z.string().optional(), isExempt: z.boolean().optional(), exemptReason: z.string().optional() });
 export const updatePaymentSchema = z.object({ status: z.enum(["PAID", "PENDING"]), method: z.string().optional() });
 export const createClassroomSchema = z.object({ name: z.string().min(2).max(50), maxCapacity: z.number({ coerce: true }).int().min(1).max(100) });
-export const paginationSchema = z.object({ page: z.number({ coerce: true }).int().min(1).default(1), limit: z.number({ coerce: true }).int().min(1).max(100).default(10), search: z.string().optional() });
+export const paginationSchema = z.object({ page: z.number({ coerce: true }).int().min(1).default(1), limit: z.number({ coerce: true }).int().min(1).max(500).default(10), search: z.string().optional() });

@@ -10,7 +10,7 @@ export default function AccessPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
   const navigate = useNavigate();
 
   useEffect(() => { inputRef.current?.focus(); const h = () => inputRef.current?.focus(); document.addEventListener("click", h); return () => document.removeEventListener("click", h); }, []);

@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { Student, Enrollment, Payment, Classroom, AccessResult, Attendance, ApiResponse } from "../types";
 
-const api = axios.create({ baseURL: "/api" });
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : "/api" });
 
 export const studentApi = {
   list: (p=1,l=10,s="") => api.get<ApiResponse<Student[]>>(`/students?page=${p}&limit=${l}&search=${s}`),

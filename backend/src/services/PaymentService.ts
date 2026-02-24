@@ -14,7 +14,7 @@ export class PaymentService {
     return { payments, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
-  async create(data: { enrollmentId: string; amount: number; validUntil?: string; method?: string }) {
+  async create(data: { enrollmentId: string; amount: number; validUntil?: string; method?: string; isExempt?: boolean; exemptReason?: string }) {
     if (!(await this.enrollRepo.findById(data.enrollmentId))) throw new NotFoundError("Matricula");
     return this.payRepo.create({
       enrollmentId: data.enrollmentId,

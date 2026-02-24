@@ -9,6 +9,7 @@ import ClassroomsPage from "./pages/ClassroomsPage";
 import ClassroomDetailPage from "./pages/ClassroomDetailPage";
 import AttendancePage from "./pages/AttendancePage";
 import FeedbackPage from "./pages/FeedbackPage";
+import ReportsPage from "./pages/ReportsPage";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/classrooms/:id" element={<ClassroomDetailPage />} />
         <Route path="/attendance" element={<AttendancePage />} />
         <Route path="/feedback" element={<FeedbackPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
       </Route>
       <Route path="/access" element={<AccessPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
