@@ -8,8 +8,8 @@ COPY package*.json ./
 RUN npm install
 
 COPY . ./
-RUN npx prisma generate
+RUN npx prisma generate --no-engine || ./node_modules/.bin/prisma generate
 
 EXPOSE 3333
 
-CMD npx prisma db push && npx tsx src/server.ts
+CMD ./node_modules/.bin/prisma db push && npx tsx src/server.ts
