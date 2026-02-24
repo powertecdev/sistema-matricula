@@ -22,7 +22,7 @@ export const enrollmentApi = {
 export const paymentApi = {
   list: (p=1,l=100) => api.get<ApiResponse<Payment[]>>(`/payments?page=${p}&limit=${l}`),
   create: (d: { enrollmentId: string; amount: number; validUntil?: string }) => api.post<ApiResponse<Payment>>("/payments", d),
-  updateStatus: (id: string, s: string, method?: string) => api.patch<ApiResponse<Payment>>(`/payments/${id}/status`, { status: s, method }),
+  updateStatus: (id: string, s: string, method?: string, validUntil?: string) => api.patch<ApiResponse<Payment>>(`/payments/${id}/status`, { status: s, method, validUntil }),
 };
 
 export const accessApi = {

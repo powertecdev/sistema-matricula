@@ -7,8 +7,8 @@ import toast from "react-hot-toast";
 
 const methodLabels: Record<string, { label: string; color: string }> = {
   PIX: { label: "PIX", color: "bg-emerald-500/15 text-emerald-400" },
-  CARTAO_CREDITO: { label: "Crédito", color: "bg-blue-500/15 text-blue-400" },
-  CARTAO_DEBITO: { label: "Débito", color: "bg-cyan-500/15 text-cyan-400" },
+  CARTAO_CREDITO: { label: "Credito", color: "bg-blue-500/15 text-blue-400" },
+  CARTAO_DEBITO: { label: "Debito", color: "bg-cyan-500/15 text-cyan-400" },
   DINHEIRO: { label: "Dinheiro", color: "bg-amber-500/15 text-amber-400" },
   BOLETO: { label: "Boleto", color: "bg-purple-500/15 text-purple-400" },
 };
@@ -20,6 +20,7 @@ export default function PaymentsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ id: string; name: string } | null>(null);
   const [confirmMethod, setConfirmMethod] = useState("");
+  const [confirmValidUntil, setConfirmValidUntil] = useState("");
   const [form, setForm] = useState({ enrollmentId: "", amount: "", validUntil: "", method: "", isExempt: false, exemptReason: "" });
 
   const load = async () => {
@@ -52,13 +53,14 @@ export default function PaymentsPage() {
     } catch (err: any) { toast.error(err.response?.data?.error || "Erro"); }
   };
 
+  const closeConfirmModal = () => { setConfirmModal(null); setConfirmMethod(""); setConfirmValidUntil(""); };
+
   const handleConfirmPayment = async () => {
     if (!confirmModal || !confirmMethod) { toast.error("Selecione a forma de pagamento"); return; }
     try {
-      await paymentApi.updateStatus(confirmModal.id, "PAID", confirmMethod);
+      await paymentApi.updateStatus(confirmModal.id, "PAID", confirmMethod, confirmValidUntil || undefined);
       toast.success("Pagamento confirmado!");
-      setConfirmModal(null);
-      setConfirmMethod("");
+      closeConfirmModal();
       load();
     } catch (err: any) { toast.error(err.response?.data?.error || "Erro"); }
   };
@@ -87,6 +89,14 @@ export default function PaymentsPage() {
     return <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${m.color}`}>{m.label}</span>;
   };
 
+  const paymentMethods = [
+    { value: "PIX", label: "PIX" },
+    { value: "CARTAO_CREDITO", label: "Credito" },
+    { value: "CARTAO_DEBITO", label: "Debito" },
+    { value: "DINHEIRO", label: "Dinheiro" },
+    { value: "BOLETO", label: "Boleto" },
+  ];
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -100,9 +110,7 @@ export default function PaymentsPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-12 h-12 border-2 border-slate-700 border-t-violet-500 rounded-full animate-spin" />
-        </div>
+        <div className="flex justify-center py-20"><div className="w-12 h-12 border-2 border-slate-700 border-t-violet-500 rounded-full animate-spin" /></div>
       ) : payments.length === 0 ? (
         <div className="glass-card flex flex-col items-center py-16">
           <CreditCard className="w-12 h-12 text-slate-600 mb-4" />
@@ -122,7 +130,7 @@ export default function PaymentsPage() {
                     <th className="py-4 px-5 text-left text-xs font-semibold text-slate-400 uppercase">Status</th>
                     <th className="py-4 px-5 text-left text-xs font-semibold text-slate-400 uppercase">Pago em</th>
                     <th className="py-4 px-5 text-left text-xs font-semibold text-slate-400 uppercase">Validade</th>
-                    <th className="py-4 px-5 text-right text-xs font-semibold text-slate-400 uppercase">Ação</th>
+                    <th className="py-4 px-5 text-right text-xs font-semibold text-slate-400 uppercase">Acao</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -133,26 +141,14 @@ export default function PaymentsPage() {
                       <td className="py-4 px-5 text-sm font-mono text-white">R$ {p.amount?.toFixed(2)}</td>
                       <td className="py-4 px-5"><MethodBadge method={p.method} /></td>
                       <td className="py-4 px-5">
-                        <span className={p.status === "PAID" ? "badge-paid" : "badge-pending"}>
-                          {p.status === "PAID" ? "Pago" : "Pendente"}
-                        </span>
+                        <span className={p.status === "PAID" ? "badge-paid" : "badge-pending"}>{p.status === "PAID" ? "Pago" : "Pendente"}</span>
                         {p.isExempt && <span className="ml-1 text-xs font-medium px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">Isento</span>}
                       </td>
                       <td className="py-4 px-5 text-sm text-slate-400">
-                        {p.status === "PAID" && p.paidAt ? (
-                          <span className="flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-emerald-500" />
-                            {formatDate(p.paidAt)}
-                          </span>
-                        ) : ""}
+                        {p.status === "PAID" && p.paidAt ? (<span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-emerald-500" />{formatDate(p.paidAt)}</span>) : ""}
                       </td>
                       <td className="py-4 px-5 text-sm">
-                        {p.validUntil ? (
-                          <span className={isExpired(p.validUntil) ? "text-red-400" : "text-slate-400"}>
-                            {formatDate(p.validUntil)}
-                            {isExpired(p.validUntil) && <span className="ml-1 badge-expired">vencido</span>}
-                          </span>
-                        ) : ""}
+                        {p.validUntil ? (<span className={isExpired(p.validUntil) ? "text-red-400" : "text-slate-400"}>{formatDate(p.validUntil)}{isExpired(p.validUntil) && <span className="ml-1 badge-expired">vencido</span>}</span>) : ""}
                       </td>
                       <td className="py-4 px-5 text-right">
                         {p.status === "PAID" ? (
@@ -179,24 +175,12 @@ export default function PaymentsPage() {
                   <span className="text-sm font-mono text-white font-bold">R$ {p.amount?.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={p.status === "PAID" ? "badge-paid" : "badge-pending"}>
-                    {p.status === "PAID" ? "Pago" : "Pendente"}
-                  </span>
+                  <span className={p.status === "PAID" ? "badge-paid" : "badge-pending"}>{p.status === "PAID" ? "Pago" : "Pendente"}</span>
                   <MethodBadge method={p.method} />
                   {p.isExempt && <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400">Isento</span>}
-                  {p.validUntil && isExpired(p.validUntil) && <span className="badge-expired">vencido</span>}
                 </div>
-                {p.status === "PAID" && p.paidAt && (
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <Calendar className="w-3.5 h-3.5 text-emerald-500" />
-                    Pago em {formatDate(p.paidAt)}
-                  </div>
-                )}
-                {p.validUntil && (
-                  <div className="text-xs text-slate-500">
-                    Validade: <span className={isExpired(p.validUntil) ? "text-red-400" : ""}>{formatDate(p.validUntil)}</span>
-                  </div>
-                )}
+                {p.status === "PAID" && p.paidAt && (<div className="flex items-center gap-1.5 text-xs text-slate-400"><Calendar className="w-3.5 h-3.5 text-emerald-500" />Pago em {formatDate(p.paidAt)}</div>)}
+                {p.validUntil && (<div className="text-xs text-slate-500">Validade: <span className={isExpired(p.validUntil) ? "text-red-400" : ""}>{formatDate(p.validUntil)}</span></div>)}
                 <div className="pt-2 border-t border-slate-800/40">
                   {p.status === "PAID" ? (
                     <button onClick={() => handleSetPending(p.id)} className="w-full btn-danger text-xs py-2">Marcar Pendente</button>
@@ -210,53 +194,39 @@ export default function PaymentsPage() {
         </>
       )}
 
-      {/* Modal Confirmar Pagamento */}
-      <Modal isOpen={!!confirmModal} onClose={() => { setConfirmModal(null); setConfirmMethod(""); }} title="Confirmar Pagamento" size="sm">
-        <div className="space-y-4">
+      <Modal isOpen={!!confirmModal} onClose={closeConfirmModal} title="Confirmar Pagamento" size="md">
+        <div className="space-y-5">
           <p className="text-sm text-slate-400">Confirmar pagamento de <span className="text-white font-semibold">{confirmModal?.name}</span></p>
           <div>
-            <label className="block text-sm text-slate-400 mb-3">Como foi pago?</label>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { value: "PIX", label: "PIX", icon: "💰" },
-                { value: "CARTAO_CREDITO", label: "Cartão Crédito", icon: "💳" },
-                { value: "CARTAO_DEBITO", label: "Cartão Débito", icon: "💳" },
-                { value: "DINHEIRO", label: "Dinheiro", icon: "💵" },
-                { value: "BOLETO", label: "Boleto", icon: "📄" },
-              ].map((m) => (
-                <button
-                  key={m.value}
-                  type="button"
-                  onClick={() => setConfirmMethod(m.value)}
-                  className={`p-3 rounded-xl border text-left transition-all ${
-                    confirmMethod === m.value
-                      ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
-                      : "border-slate-700/50 bg-slate-800/50 text-slate-300 hover:border-slate-600"
-                  }`}
-                >
-                  <span className="text-lg block mb-1">{m.icon}</span>
-                  <span className="text-xs font-medium">{m.label}</span>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Forma de pagamento</label>
+            <div className="grid grid-cols-5 gap-2">
+              {paymentMethods.map((m) => (
+                <button key={m.value} type="button" onClick={() => setConfirmMethod(m.value)}
+                  className={`flex flex-col items-center justify-center py-3 px-1 rounded-xl border transition-all ${confirmMethod === m.value ? "border-emerald-500 bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/30" : "border-slate-700/50 bg-slate-800/30 text-slate-400 hover:border-slate-500 hover:text-slate-300"}`}>
+                  <span className="text-[11px] font-medium">{m.label}</span>
                 </button>
               ))}
             </div>
           </div>
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
-            <button type="button" onClick={() => { setConfirmModal(null); setConfirmMethod(""); }} className="btn-secondary w-full sm:w-auto">Cancelar</button>
-            <button type="button" onClick={handleConfirmPayment} disabled={!confirmMethod} className="btn-primary w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed">Confirmar Pagamento</button>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Valido ate</label>
+            <input type="date" className="input-field w-full" value={confirmValidUntil} onChange={(e) => setConfirmValidUntil(e.target.value)} />
+            <p className="text-xs text-slate-500 mt-1">Data de vencimento deste pagamento</p>
+          </div>
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-700/50">
+            <button type="button" onClick={closeConfirmModal} className="btn-secondary">Cancelar</button>
+            <button type="button" onClick={handleConfirmPayment} disabled={!confirmMethod} className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">Confirmar Pagamento</button>
           </div>
         </div>
       </Modal>
 
-      {/* Modal Novo Pagamento */}
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Novo Pagamento">
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-sm text-slate-400 mb-1.5">Matrícula</label>
+            <label className="block text-sm text-slate-400 mb-1.5">Matricula</label>
             <select className="input-field" value={form.enrollmentId} onChange={(e) => setForm({ ...form, enrollmentId: e.target.value })} required>
               <option value="">Selecione...</option>
-              {enrollments.map((en: any) => (
-                <option key={en.id} value={en.id}>{en.student?.name} - {en.classroom?.name}</option>
-              ))}
+              {enrollments.map((en: any) => (<option key={en.id} value={en.id}>{en.student?.name} - {en.classroom?.name}</option>))}
             </select>
           </div>
           <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
@@ -266,38 +236,26 @@ export default function PaymentsPage() {
             </label>
             <span className="text-sm text-slate-300">Isento de pagamento</span>
           </div>
-          {form.isExempt && (
-            <div>
-              <label className="block text-sm text-slate-400 mb-1.5">Motivo da isenção</label>
-              <input className="input-field" placeholder="Ex: Bolsista, funcionário, cortesia..." value={form.exemptReason} onChange={(e) => setForm({ ...form, exemptReason: e.target.value })} />
-            </div>
-          )}
+          {form.isExempt && (<div><label className="block text-sm text-slate-400 mb-1.5">Motivo da isencao</label><input className="input-field" placeholder="Ex: Bolsista, funcionario, cortesia..." value={form.exemptReason} onChange={(e) => setForm({ ...form, exemptReason: e.target.value })} /></div>)}
           {!form.isExempt && (
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-slate-400 mb-1.5">Valor (R$)</label>
-                <input type="number" step="0.01" className="input-field" placeholder="500.00" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
-              </div>
-              <div>
-                <label className="block text-sm text-slate-400 mb-1.5">Forma de Pagamento</label>
+              <div><label className="block text-sm text-slate-400 mb-1.5">Valor (R$)</label><input type="number" step="0.01" className="input-field" placeholder="500.00" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required /></div>
+              <div><label className="block text-sm text-slate-400 mb-1.5">Forma de Pagamento</label>
                 <select className="input-field" value={form.method} onChange={(e) => setForm({ ...form, method: e.target.value })}>
-                  <option value="">Não informado</option>
+                  <option value="">Nao informado</option>
                   <option value="PIX">PIX</option>
-                  <option value="CARTAO_CREDITO">Cartão Crédito</option>
-                  <option value="CARTAO_DEBITO">Cartão Débito</option>
+                  <option value="CARTAO_CREDITO">Cartao Credito</option>
+                  <option value="CARTAO_DEBITO">Cartao Debito</option>
                   <option value="DINHEIRO">Dinheiro</option>
                   <option value="BOLETO">Boleto</option>
                 </select>
               </div>
             </div>
           )}
-          <div>
-            <label className="block text-sm text-slate-400 mb-1.5">Válido até</label>
-            <input type="date" className="input-field" value={form.validUntil} onChange={(e) => setForm({ ...form, validUntil: e.target.value })} />
-          </div>
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
-            <button type="button" onClick={() => setShowCreate(false)} className="btn-secondary w-full sm:w-auto">Cancelar</button>
-            <button type="submit" className="btn-primary w-full sm:w-auto">Criar</button>
+          <div><label className="block text-sm text-slate-400 mb-1.5">Valido ate</label><input type="date" className="input-field" value={form.validUntil} onChange={(e) => setForm({ ...form, validUntil: e.target.value })} /></div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setShowCreate(false)} className="btn-secondary">Cancelar</button>
+            <button type="submit" className="btn-primary">Criar</button>
           </div>
         </form>
       </Modal>

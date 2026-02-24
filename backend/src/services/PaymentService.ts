@@ -32,9 +32,9 @@ export class PaymentService {
     return p;
   }
 
-  async updateStatus(id: string, status: PaymentStatus, method?: string) {
+  async updateStatus(id: string, status: PaymentStatus, method?: string, validUntil?: string) {
     const p = await this.payRepo.findById(id);
     if (!p) throw new NotFoundError("Pagamento");
-    return this.payRepo.updateStatus(id, status, method);
+    return this.payRepo.updateStatus(id, status, method, validUntil ? new Date(validUntil) : undefined);
   }
 }

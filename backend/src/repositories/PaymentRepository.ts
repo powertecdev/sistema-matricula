@@ -31,7 +31,7 @@ export class PaymentRepository {
     });
   }
 
-  async updateStatus(id: string, status: PaymentStatus, method?: string) {
-    return prisma.payment.update({ where: { id }, data: { status, paidAt: status === "PAID" ? new Date() : null, ...(method ? { method } : {}) } });
+  async updateStatus(id: string, status: PaymentStatus, method?: string, validUntil?: Date) {
+    return prisma.payment.update({ where: { id }, data: { status, paidAt: status === "PAID" ? new Date() : null, ...(method ? { method } : {}), ...(validUntil ? { validUntil } : {}) } });
   }
 }
