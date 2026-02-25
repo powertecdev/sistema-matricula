@@ -18,7 +18,9 @@ export class PaymentController {
     sendCreated(res, await service.create(createPaymentSchema.parse(req.body) as any), "Pagamento criado");
   }
   async updateStatus(req: Request, res: Response) {
-    const { status } = updatePaymentSchema.parse(req.body);
-    sendSuccess(res, await service.updateStatus(String(req.params.id), status), "Pagamento atualizado");
+    console.log("=== UPDATE PAYMENT ===", req.body);
+    const { status, method, validUntil } = updatePaymentSchema.parse(req.body);
+    console.log("PARSED:", { status, method, validUntil });
+    sendSuccess(res, await service.updateStatus(String(req.params.id), status, method, validUntil), "Pagamento atualizado");
   }
 }

@@ -31,7 +31,7 @@ export class StudentRepository {
       include: {
         enrollments: {
           where: { status: "ACTIVE" },
-          include: { classroom: { select: { id: true, name: true } }, payments: { orderBy: { createdAt: "desc" }, take: 1, select: { id: true, status: true, amount: true, method: true, isExempt: true, exemptReason: true, validUntil: true, paidAt: true } } },
+          include: { classroom: { select: { id: true, name: true } }, payments: { orderBy: { createdAt: "desc" }, select: { id: true, status: true, amount: true, method: true, isExempt: true, exemptReason: true, validUntil: true, paidAt: true } } },
         },
       },
     });

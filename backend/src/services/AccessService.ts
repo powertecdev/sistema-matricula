@@ -61,27 +61,34 @@ export class AccessService {
     if (!active)
       return { ...base, status: "BLOCKED", message: "Matricula nao esta ativa", attendanceRegistered: false };
 
-    const pay = active.payments[0];
-    if (!pay || pay.status !== "PAID")
+    // Busca pagamento valido: isento OU pago e nao vencido
+    const exemptPay = active.payments.find((p: any) => p.isExempt);
+    const validPaidPay = active.payments.find((p: any) => p.status === "PAID" && (!p.validUntil || new Date(p.validUntil) >= new Date()));
+    const pay = exemptPay || validPaidPay;
+
+    if (!pay) {
+      // Verifica se tem pagamento pago mas vencido
+      const expiredPay = active.payments.find((p: any) => p.status === "PAID" && p.validUntil && new Date(p.validUntil) < new Date());
+      if (expiredPay)
+        return {
+          ...base, status: "BLOCKED",
+          enrollmentStatus: active.status,
+          paymentStatus: "PAID",
+          paymentValidUntil: expiredPay.validUntil,
+          classroom: active.classroom.name,
+          message: "Pagamento vencido - realize um novo pagamento",
+          attendanceRegistered: false,
+        };
+
       return {
         ...base, status: "BLOCKED",
         enrollmentStatus: active.status,
-        paymentStatus: pay?.status || "PENDING",
+        paymentStatus: active.payments[0]?.status || "PENDING",
         classroom: active.classroom.name,
         message: "Pagamento pendente",
         attendanceRegistered: false,
       };
-
-    if (pay.validUntil && new Date(pay.validUntil) < new Date())
-      return {
-        ...base, status: "BLOCKED",
-        enrollmentStatus: active.status,
-        paymentStatus: "PAID",
-        paymentValidUntil: pay.validUntil,
-        classroom: active.classroom.name,
-        message: "Pagamento vencido",
-        attendanceRegistered: false,
-      };
+    }
 
     let registered = false;
     const last = await this.attendanceRepo.findLastByStudent(student.id);

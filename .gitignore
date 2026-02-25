@@ -37,3 +37,5 @@ backend/uploads/*
 check.ts
 check2.ts
 fix-exempt.ts
+.vercel
+.env*.local
