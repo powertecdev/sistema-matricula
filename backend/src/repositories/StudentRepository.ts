@@ -37,6 +37,17 @@ export class StudentRepository {
     });
   }
 
+  async updateFaceDescriptor(id: string, descriptor: string) {
+    return prisma.student.update({ where: { id }, data: { faceDescriptor: descriptor } });
+  }
+
+  async findAllWithFace() {
+    return prisma.student.findMany({
+      where: { faceDescriptor: { not: null } },
+      select: { id: true, name: true, qrCode: true, faceDescriptor: true },
+    });
+  }
+
   async findByShortCode(shortCode: string): Promise<string | null> {
     const students = await prisma.student.findMany({ select: { qrCode: true } });
     const found = students.find(s => {

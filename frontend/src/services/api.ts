@@ -10,6 +10,8 @@ export const studentApi = {
   update: (id: string, d: any) => api.put<ApiResponse<Student>>(`/students/${id}`, d),
   delete: (id: string) => api.delete(`/students/${id}`),
   uploadPhoto: (id: string, f: File) => { const fd = new FormData(); fd.append("photo", f); return api.post(`/students/${id}/photo`, fd, { headers: { "Content-Type": "multipart/form-data" } }); },
+  updateFace: (id: string, descriptor: string) => api.post(`/students/${id}/face`, { descriptor }),
+  getFaceDescriptors: () => api.get("/students/faces/all"),
   getQRCode: (id: string) => api.get<ApiResponse<{ qrCode: string; qrCodeImage: string; studentName: string; registrationNumber: string }>>(`/students/${id}/qrcode`),
 };
 

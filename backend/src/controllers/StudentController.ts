@@ -19,5 +19,15 @@ export class StudentController {
     sendSuccess(res, await svc.updatePhoto(String(req.params.id), "/uploads/" + req.file.filename), "Foto atualizada");
   }
   async getQRCode(req: Request, res: Response) { sendSuccess(res, await svc.getQRCode(String(req.params.id))); }
+  async updateFaceDescriptor(req: Request, res: Response) {
+    const { descriptor } = req.body;
+    if (!descriptor) return sendSuccess(res, null, "Descriptor obrigatorio", 400);
+    sendSuccess(res, await svc.updateFaceDescriptor(String(req.params.id), descriptor), "Face registrada");
+  }
+
+  async getFaceDescriptors(req: Request, res: Response) {
+    sendSuccess(res, await svc.getAllFaceDescriptors());
+  }
+
   async delete(req: Request, res: Response) { await svc.delete(String(req.params.id)); sendSuccess(res, null, "Removido"); }
 }

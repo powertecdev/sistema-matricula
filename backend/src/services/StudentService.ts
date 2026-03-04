@@ -77,6 +77,16 @@ export class StudentService {
     return this.repo.update(id, { photoUrl });
   }
 
+  async updateFaceDescriptor(id: string, descriptor: string) {
+    const s = await this.repo.findById(id);
+    if (!s) throw new NotFoundError("Aluno");
+    return this.repo.updateFaceDescriptor(id, descriptor);
+  }
+
+  async getAllFaceDescriptors() {
+    return this.repo.findAllWithFace();
+  }
+
   async getQRCode(id: string) {
     const s = await this.getById(id);
     const dataUrl = await generateBarcodeDataURL(s.qrCode);

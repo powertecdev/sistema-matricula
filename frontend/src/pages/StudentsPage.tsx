@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { Users, Plus, Search, Upload, Trash2, Edit, ScanBarcode, CalendarCheck } from "lucide-react";
+import { Users, Plus, Search, Upload, Trash2, Edit, ScanBarcode, CalendarCheck, Camera } from "lucide-react";
 import { studentApi, classroomApi, attendanceApi } from "../services/api";
 import type { Student, Classroom } from "../types";
 import Modal from "../components/Modal";
 import AttendanceHistoryModal from "../components/AttendanceHistoryModal";
+import StudentFaceModal from "../components/StudentFaceModal";
 import toast from "react-hot-toast";
 
 export default function StudentsPage() {
@@ -19,6 +20,7 @@ export default function StudentsPage() {
   const [qrData, setQrData] = useState<any>(null);
   const [attendanceCounts, setAttendanceCounts] = useState<Record<string,number>>({});
   const [historyStudent, setHistoryStudent] = useState<{id:string;name:string}|null>(null);
+  const [faceStudent, setFaceStudent] = useState<any>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -78,7 +80,7 @@ export default function StudentsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div><h1 className="text-xl sm:text-3xl font-display font-bold text-white mb-1">Alunos</h1><p className="text-sm text-slate-500">Gerenciar alunos e Códigos de Barras</p></div>
+        <div><h1 className="text-xl sm:text-3xl font-display font-bold text-white mb-1">Alunos</h1><p className="text-sm text-slate-500">Gerenciar alunos e Codigos de Barras</p></div>
         <button onClick={openCreate} className="btn-primary flex items-center gap-2 self-start"><Plus className="w-4 h-4" /> Novo Aluno</button>
       </div>
       <div className="glass-card p-4"><div className="relative"><Search className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" /><input className="input-field pl-11" placeholder="Buscar..." value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} /></div></div>
@@ -104,7 +106,8 @@ export default function StudentsPage() {
               </td>
               <td className="py-4 px-5 text-sm text-slate-300">{s.phone}</td>
               <td className="py-4 px-5"><div className="flex items-center justify-end gap-1">
-                <button onClick={()=>showQR(s)} className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-emerald-400 transition-colors" title="Código de Barras"><ScanBarcode className="w-4 h-4" /></button>
+                <button onClick={()=>setFaceStudent(s)} className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-cyan-400 transition-colors" title="Face ID"><Camera className="w-4 h-4" /></button>
+                <button onClick={()=>showQR(s)} className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-emerald-400 transition-colors" title="Codigo de Barras"><ScanBarcode className="w-4 h-4" /></button>
                 <button onClick={()=>{setSelected(s);setModal("upload");}} className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition-colors" title="Foto"><Upload className="w-4 h-4" /></button>
                 <button onClick={()=>{setSelected(s);setForm({...form,registrationNumber:s.registrationNumber,name:s.name,age:String(s.age),address:s.address,phone:s.phone});setModal("edit");}} className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition-colors" title="Editar"><Edit className="w-4 h-4" /></button>
                 <button onClick={async()=>{if(confirm("Remover "+s.name+"?")){await studentApi.delete(s.id);toast.success("Removido!");load();}}} className="p-2 rounded-lg hover:bg-red-600/10 text-slate-400 hover:text-red-400 transition-colors" title="Remover"><Trash2 className="w-4 h-4" /></button>
@@ -134,6 +137,7 @@ export default function StudentsPage() {
               </div>
               <p className="text-xs text-slate-500 truncate mb-3">{s.address}</p>
               <div className="flex items-center gap-1 border-t border-slate-800/40 pt-3">
+                <button onClick={()=>setFaceStudent(s)} className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-cyan-400 transition-colors" title="Face ID"><Camera className="w-4 h-4" /></button>
                 <button onClick={()=>showQR(s)} className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-emerald-400 transition-colors"><ScanBarcode className="w-4 h-4" /></button>
                 <button onClick={()=>{setSelected(s);setModal("upload");}} className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition-colors"><Upload className="w-4 h-4" /></button>
                 <button onClick={()=>{setSelected(s);setForm({...form,registrationNumber:s.registrationNumber,name:s.name,age:String(s.age),address:s.address,phone:s.phone});setModal("edit");}} className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition-colors"><Edit className="w-4 h-4" /></button>
@@ -177,8 +181,8 @@ export default function StudentsPage() {
               </div>
               {form.isExempt && (
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1.5">Motivo da isenção</label>
-                  <input className="input-field" placeholder="Ex: Bolsista, funcionário, cortesia..." value={form.exemptReason} onChange={e=>setForm({...form,exemptReason:e.target.value})} />
+                  <label className="block text-sm text-slate-400 mb-1.5">Motivo da isencao</label>
+                  <input className="input-field" placeholder="Ex: Bolsista, funcionario, cortesia..." value={form.exemptReason} onChange={e=>setForm({...form,exemptReason:e.target.value})} />
                 </div>
               )}
 
@@ -217,9 +221,9 @@ export default function StudentsPage() {
         <input type="file" accept="image/*" className="input-field" onChange={async(e)=>{if(e.target.files?.[0]&&selected){try{await studentApi.uploadPhoto(selected.id,e.target.files[0]);toast.success("Foto atualizada!");setModal(null);load();}catch(err:any){toast.error("Erro");}}}} />
       </Modal>
 
-      <Modal isOpen={modal==="qr"} onClose={()=>setModal(null)} title="Código de Barras" size="sm">
+      <Modal isOpen={modal==="qr"} onClose={()=>setModal(null)} title="Codigo de Barras" size="sm">
         {qrData&&<div className="flex flex-col items-center">
-          <img src={qrData.qrCodeImage} alt="Código de Barras" className="w-full max-w-[320px] rounded-xl mb-4 bg-white p-3" />
+          <img src={qrData.qrCodeImage} alt="Codigo de Barras" className="w-full max-w-[320px] rounded-xl mb-4 bg-white p-3" />
           <p className="text-lg font-semibold text-white mb-1">{qrData.studentName}</p>
           <p className="font-mono text-sm text-brand-400 mb-3">{qrData.registrationNumber}</p>
           <p className="text-xs text-slate-500 bg-slate-800/60 px-3 py-2 rounded-lg font-mono break-all select-all mb-4">{qrData.qrCode}</p>
@@ -227,14 +231,14 @@ export default function StudentsPage() {
             onClick={() => {
               const w = window.open("", "_blank", "width=450,height=350");
               if (w) {
-                w.document.write(`<!DOCTYPE html><html><head><title>Código de Barras - ${qrData.studentName}</title><style>body{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:Arial,sans-serif;background:#fff}img{max-width:350px;margin-bottom:12px}h2{margin:0;font-size:18px}p{margin:4px 0;color:#666;font-size:13px}.mono{font-family:monospace;font-size:11px;color:#999}@media print{body{padding:20px}}</style></head><body><img src="${qrData.qrCodeImage}" /><h2>${qrData.studentName}</h2><p>${qrData.registrationNumber}</p><p class="mono">${qrData.qrCode}</p><script>setTimeout(()=>{window.print();},300);<\/script></body></html>`);
+                w.document.write(`<!DOCTYPE html><html><head><title>Codigo - ${qrData.studentName}</title><style>body{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:Arial,sans-serif;background:#fff}img{max-width:350px;margin-bottom:12px}h2{margin:0;font-size:18px}p{margin:4px 0;color:#666;font-size:13px}.mono{font-family:monospace;font-size:11px;color:#999}@media print{body{padding:20px}}</style></head><body><img src="${qrData.qrCodeImage}" /><h2>${qrData.studentName}</h2><p>${qrData.registrationNumber}</p><p class="mono">${qrData.qrCode}</p><script>setTimeout(()=>{window.print();},300);<\/script></body></html>`);
                 w.document.close();
               }
             }}
             className="btn-primary w-full flex items-center justify-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Imprimir Código de Barras
+            Imprimir Codigo de Barras
           </button>
           <p className="text-xs text-slate-600 mt-2">Use na tela de acesso</p>
         </div>}
@@ -248,6 +252,13 @@ export default function StudentsPage() {
           studentName={historyStudent.name}
         />
       )}
+
+      <StudentFaceModal
+        student={faceStudent}
+        isOpen={!!faceStudent}
+        onClose={() => setFaceStudent(null)}
+        onToast={(msg: string, type: "success" | "error") => type === "success" ? toast.success(msg) : toast.error(msg)}
+      />
     </div>
   );
 }
