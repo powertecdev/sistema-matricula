@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import * as faceapi from "face-api.js";
 import { Camera, CheckCircle, AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import { studentApi } from "../services/api";
 
 interface Props {
   studentId: string;
@@ -109,7 +110,7 @@ export default function FaceCapture({ studentId, onSave, existingDescriptor }: P
     detect();
   }, []);
 
-  // Capturar face descriptor
+  // Capturar face descriptor com verificacao de duplicata
   const captureFace = async () => {
     if (!videoRef.current) return;
     setStatus("detecting");
@@ -124,6 +125,25 @@ export default function FaceCapture({ studentId, onSave, existingDescriptor }: P
         setError("Nenhum rosto detectado. Centralize o rosto na camera.");
         setStatus("camera-on");
         return;
+      }
+
+      // Verificar se rosto ja esta cadastrado em outro aluno
+      try {
+        const res = await studentApi.getFaceDescriptors();
+        const faces = res.data.data || [];
+        for (const face of faces) {
+          if (face.id === studentId) continue;
+          if (!face.faceDescriptor) continue;
+          const existing = new Float32Array(JSON.parse(face.faceDescriptor));
+          const distance = faceapi.euclideanDistance(detection.descriptor, existing);
+          if (distance < 0.45) {
+            setError("Este rosto ja esta cadastrado para o aluno: " + face.name + ". Cada pessoa deve ter um rosto unico.");
+            setStatus("camera-on");
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Nao foi possivel verificar duplicatas:", e);
       }
 
       setDescriptor(detection.descriptor);
