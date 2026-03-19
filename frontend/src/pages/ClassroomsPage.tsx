@@ -54,7 +54,6 @@ export default function ClassroomsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {classrooms.map((c) => {
             const count = c._count?.enrollments || 0;
-            const pct = Math.round((count / c.maxCapacity) * 100);
             return (
               <div key={c.id} className="glass-card p-6 cursor-pointer hover:border-cyan-500/30 border border-transparent transition-all hover:scale-[1.02]" onClick={() => navigate(`/classrooms/${c.id}`)}>
                 <div className="flex items-center gap-3 mb-4">
@@ -62,11 +61,7 @@ export default function ClassroomsPage() {
                   <h3 className="font-display font-semibold text-white">{c.name}</h3>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex justify-between text-sm"><span className="text-slate-400">Alunos</span><span className="text-white font-medium">{count} / {c.maxCapacity}</span></div>
-                  <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full transition-all ${pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${pct}%` }} />
-                  </div>
-                  <p className="text-xs text-slate-500">{c.maxCapacity - count} vaga(s) disponivel(is)</p>
+                  <div className="flex justify-between text-sm"><span className="text-slate-400">Alunos</span><span className="text-white font-medium">{count}</span></div>
                 </div>
               </div>
             );
