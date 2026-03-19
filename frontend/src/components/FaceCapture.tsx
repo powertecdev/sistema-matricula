@@ -20,6 +20,7 @@ export default function FaceCapture({ studentId, onSave, existingDescriptor }: P
   const [descriptor, setDescriptor] = useState<Float32Array | null>(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [faceDetected, setFaceDetected] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<{ name: string } | null>(null);
 
   // Carregar modelos do face-api
   const loadModels = useCallback(async () => {
@@ -137,8 +138,9 @@ export default function FaceCapture({ studentId, onSave, existingDescriptor }: P
           const existing = new Float32Array(JSON.parse(face.faceDescriptor));
           const distance = faceapi.euclideanDistance(detection.descriptor, existing);
           if (distance < 0.45) {
-            setError("Este rosto ja esta cadastrado para o aluno: " + face.name + ". Cada pessoa deve ter um rosto unico.");
-            setStatus("camera-on");
+            setDescriptor(detection.descriptor);
+            setDuplicateWarning({ name: face.name });
+            setStatus("captured");
             return;
           }
         }
@@ -182,6 +184,7 @@ export default function FaceCapture({ studentId, onSave, existingDescriptor }: P
     setDescriptor(null);
     setError("");
     setFaceDetected(false);
+    setDuplicateWarning(null);
     setStatus("idle");
     stopCamera();
   };
@@ -192,15 +195,15 @@ export default function FaceCapture({ studentId, onSave, existingDescriptor }: P
   }, []);
 
   return (
-    <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+    <div style={{ border: "1px solid rgba(51,65,85,0.35)", borderRadius: "14px", padding: "16px", background: "rgba(15,23,42,0.5)" }}>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-          <Camera size={16} />
-          Reconhecimento Facial
+        <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+          <Camera size={15} className="text-brand-400" />
+          Câmera
         </h3>
         {existingDescriptor && status === "idle" && (
-          <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium">
-            Rosto ja cadastrado
+          <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded-full font-medium">
+            Rosto já cadastrado
           </span>
         )}
       </div>
@@ -246,45 +249,69 @@ export default function FaceCapture({ studentId, onSave, existingDescriptor }: P
 
       {/* Mensagem de sucesso */}
       {status === "saved" && (
-        <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg mb-3">
-          <CheckCircle className="text-emerald-600" size={20} />
-          <span className="text-sm text-emerald-700 font-medium">Rosto registrado com sucesso!</span>
+        <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mb-3">
+          <CheckCircle className="text-emerald-400 shrink-0" size={18} />
+          <span className="text-sm text-emerald-400 font-medium">Rosto registrado com sucesso!</span>
         </div>
       )}
 
       {/* Mensagem de erro */}
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-3">
-          <AlertCircle className="text-red-600" size={20} />
-          <span className="text-sm text-red-700">{error}</span>
+        <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl mb-3">
+          <AlertCircle className="text-red-400 shrink-0 mt-0.5" size={16} />
+          <span className="text-sm text-red-400">{error}</span>
+        </div>
+      )}
+
+      {/* Aviso de rosto similar */}
+      {duplicateWarning && status === "captured" && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl mb-3">
+          <div className="flex items-start gap-2 mb-3">
+            <AlertCircle className="text-amber-400 shrink-0 mt-0.5" size={16} />
+            <div>
+              <p className="text-sm text-amber-400 font-medium">Rosto similar detectado</p>
+              <p className="text-xs text-amber-400/70 mt-0.5">
+                Este rosto é parecido com <strong className="text-amber-300">{duplicateWarning.name}</strong>. Pode ser semelhança física natural.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={saveDescriptor} className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5">
+              <CheckCircle size={13} /> Cadastrar mesmo assim
+            </button>
+            <button onClick={() => { setDescriptor(null); setDuplicateWarning(null); setStatus("camera-on"); }}
+              className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5">
+              <RefreshCw size={13} /> Tentar novamente
+            </button>
+          </div>
         </div>
       )}
 
       {/* Botoes */}
       <div className="flex gap-2">
         {status === "idle" && (
-          <button onClick={startCamera} className="btn-primary text-xs py-2 px-4">
-            <Camera size={14} /> {existingDescriptor ? "Recadastrar Rosto" : "Iniciar Camera"}
+          <button onClick={startCamera} className="btn-primary text-xs py-2 px-4 flex items-center gap-1.5">
+            <Camera size={14} /> {existingDescriptor ? "Recadastrar Rosto" : "Iniciar Câmera"}
           </button>
         )}
 
         {status === "camera-on" && (
           <>
             <button onClick={captureFace} disabled={!faceDetected}
-              className="btn-primary text-xs py-2 px-4 disabled:opacity-40">
-              Capturar Rosto
+              className="btn-primary text-xs py-2 px-4 flex items-center gap-1.5 disabled:opacity-40">
+              <Camera size={13} /> Capturar Rosto
             </button>
             <button onClick={reset} className="btn-secondary text-xs py-2 px-4">Cancelar</button>
           </>
         )}
 
-        {status === "captured" && (
+        {status === "captured" && !duplicateWarning && (
           <>
-            <button onClick={saveDescriptor} className="btn-success text-xs py-2 px-4">
+            <button onClick={saveDescriptor} className="btn-success text-xs py-2 px-4 flex items-center gap-1.5">
               <CheckCircle size={14} /> Confirmar e Salvar
             </button>
             <button onClick={() => { setDescriptor(null); setStatus("camera-on"); }}
-              className="btn-secondary text-xs py-2 px-4">
+              className="btn-secondary text-xs py-2 px-4 flex items-center gap-1.5">
               <RefreshCw size={14} /> Tentar Novamente
             </button>
           </>
