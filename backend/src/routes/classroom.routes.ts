@@ -7,5 +7,6 @@ const c = new ClassroomController();
 router.get("/", (req, res) => c.list(req, res));
 router.get("/:id", (req, res) => c.getById(req, res));
 router.post("/", (req, res) => c.create(req, res));
+router.patch("/:id", (req, res) => c.update(req, res));
 
 export default router;

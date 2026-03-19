@@ -25,4 +25,8 @@ export class ClassroomRepository {
   async create(data: CreateClassroomDTO) {
     return prisma.classroom.create({ data });
   }
+
+  async update(id: string, name: string) {
+    return prisma.classroom.update({ where: { id }, data: { name } });
+  }
 }

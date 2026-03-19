@@ -12,6 +12,8 @@ export default function EnrollmentsPage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ studentId: "", classroomId: "" });
+  const [studentSearch, setStudentSearch] = useState("");
+  const [selectedStudentName, setSelectedStudentName] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -40,6 +42,8 @@ export default function EnrollmentsPage() {
       toast.success("Matrícula criada!");
       setShowCreate(false);
       setForm({ studentId: "", classroomId: "" });
+      setStudentSearch("");
+      setSelectedStudentName("");
       load();
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Erro");
@@ -267,23 +271,39 @@ export default function EnrollmentsPage() {
       )}
 
       {/* Modal Nova Matrícula */}
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nova Matrícula">
+      <Modal isOpen={showCreate} onClose={() => { setShowCreate(false); setStudentSearch(""); setSelectedStudentName(""); setForm({ studentId: "", classroomId: "" }); }} title="Nova Matrícula">
         <form onSubmit={handleCreate} className="space-y-4">
-          <div>
+          <div className="relative">
             <label className="block text-sm text-slate-400 mb-1.5">Aluno</label>
-            <select
+            <input
               className="input-field"
-              value={form.studentId}
-              onChange={(e) => setForm({ ...form, studentId: e.target.value })}
-              required
-            >
-              <option value="">Selecione...</option>
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} ({s.registrationNumber})
-                </option>
-              ))}
-            </select>
+              placeholder="Buscar por nome..."
+              value={studentSearch}
+              onChange={(e) => { setStudentSearch(e.target.value); setForm({ ...form, studentId: "" }); setSelectedStudentName(""); }}
+              autoComplete="off"
+            />
+            {form.studentId && (
+              <p className="text-xs text-emerald-400 mt-1">Selecionado: {selectedStudentName}</p>
+            )}
+            {studentSearch && !form.studentId && (
+              <div className="absolute z-10 w-full bg-slate-800 border border-slate-700 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-xl">
+                {students.filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase())).length === 0 ? (
+                  <p className="text-slate-400 text-sm px-3 py-2">Nenhum aluno encontrado</p>
+                ) : (
+                  students.filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase())).map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm text-white hover:bg-slate-700 transition-colors"
+                      onClick={() => { setForm({ ...form, studentId: s.id }); setStudentSearch(s.name); setSelectedStudentName(`${s.name} (${s.registrationNumber})`); }}
+                    >
+                      {s.name} <span className="text-slate-400 text-xs">({s.registrationNumber})</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+            {!form.studentId && !studentSearch && <input type="text" required className="sr-only" />}
           </div>
           <div>
             <label className="block text-sm text-slate-400 mb-1.5">Turma</label>

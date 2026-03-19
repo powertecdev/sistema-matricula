@@ -14,4 +14,9 @@ export class ClassroomService {
   }
 
   async create(data: CreateClassroomDTO) { return this.classroomRepo.create(data); }
+
+  async update(id: string, name: string) {
+    await this.getById(id);
+    return this.classroomRepo.update(id, name);
+  }
 }
