@@ -39,10 +39,11 @@ export default function StudentFaceModal({ student, isOpen, onClose, onToast }: 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ animation: "overlayIn 0.2s ease-out" }}>
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ animation: "overlayIn 0.2s ease-out" }}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
+      <div className="relative flex min-h-full items-center justify-center p-4 pointer-events-none">
       <div
-        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg pointer-events-auto"
         style={{
           background: "linear-gradient(160deg, rgba(15,23,42,0.98) 0%, rgba(9,15,28,0.98) 100%)",
           border: "1px solid rgba(51,65,85,0.4)",
@@ -101,6 +102,7 @@ export default function StudentFaceModal({ student, isOpen, onClose, onToast }: 
             existingDescriptor={hasFace}
           />
         </div>
+      </div>
       </div>
     </div>
   );

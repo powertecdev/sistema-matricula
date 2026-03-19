@@ -42,8 +42,8 @@ export default function Layout() {
               <School style={{ width: "18px", height: "18px", color: "#fff" }} />
             </div>
             <div>
-              <h1 style={{ fontFamily: '"Syne", sans-serif', fontWeight: 700, fontSize: "17px", color: "#fff", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
-                Academia
+              <h1 style={{ fontFamily: '"Syne", sans-serif', fontWeight: 700, fontSize: "14px", color: "#fff", lineHeight: 1.2, letterSpacing: "-0.01em" }}>
+                CT Blessed Fighter
               </h1>
               <p style={{ fontSize: "10px", color: "#475569", fontWeight: 500, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: "2px" }}>
                 Gestão
