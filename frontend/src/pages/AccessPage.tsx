@@ -148,7 +148,7 @@ export default function AccessPage() {
       if (!recognitionActive.current || video.paused || video.ended) return;
       try {
         const detection = await faceapi
-          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
+          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.6 }))
           .withFaceLandmarks()
           .withFaceDescriptor();
 
@@ -167,7 +167,7 @@ export default function AccessPage() {
             if (dist < bestDist) { bestDist = dist; bestMatch = desc; }
           }
 
-          const THRESHOLD = 0.55;
+          const THRESHOLD = 0.50;
           const matched = bestMatch && bestDist < THRESHOLD;
           const conf = Math.round((1 - bestDist) * 100);
           setConfidence(matched ? conf : 0);

@@ -34,6 +34,7 @@ export const accessApi = {
 export const classroomApi = {
   list: () => api.get<ApiResponse<Classroom[]>>("/classrooms"),
   create: (d: { name: string; maxCapacity: number }) => api.post<ApiResponse<Classroom>>("/classrooms", d),
+  update: (id: string, name: string) => api.patch<ApiResponse<Classroom>>(`/classrooms/${id}`, { name }),
 };
 
 export const attendanceApi = {

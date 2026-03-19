@@ -76,7 +76,7 @@ export default function FaceCapture({ studentId, onSave, existingDescriptor }: P
       if (video.paused || video.ended || !streamRef.current) return;
 
       const detection = await faceapi
-        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
+        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.6 }))
         .withFaceLandmarks();
 
       canvas.width = video.videoWidth;

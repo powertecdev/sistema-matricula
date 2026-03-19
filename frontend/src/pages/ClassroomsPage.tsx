@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { School, Plus } from "lucide-react";
+import { School, Plus, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { classroomApi } from "../services/api";
 import type { Classroom } from "../types";
@@ -12,6 +12,8 @@ export default function ClassroomsPage() {
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: "", maxCapacity: "" });
+  const [editClassroom, setEditClassroom] = useState<Classroom | null>(null);
+  const [editName, setEditName] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -33,6 +35,17 @@ export default function ClassroomsPage() {
     } catch (err: any) { toast.error(err.response?.data?.error || "Erro"); }
   };
 
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editClassroom) return;
+    try {
+      await classroomApi.update(editClassroom.id, editName);
+      toast.success("Turma renomeada!");
+      setEditClassroom(null);
+      load();
+    } catch (err: any) { toast.error(err.response?.data?.error || "Erro"); }
+  };
+
   if (loading) return <div className="flex justify-center py-20"><div className="w-12 h-12 border-2 border-slate-700 border-t-brand-500 rounded-full animate-spin" /></div>;
 
   return (
@@ -40,7 +53,7 @@ export default function ClassroomsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-display font-bold text-white mb-1">Turmas</h1>
-          <p className="text-slate-500">Gerenciar turmas e capacidade</p>
+          <p className="text-slate-500">Gerenciar turmas</p>
         </div>
         <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2"><Plus className="w-4 h-4" /> Nova Turma</button>
       </div>
@@ -56,9 +69,17 @@ export default function ClassroomsPage() {
             const count = c._count?.enrollments || 0;
             return (
               <div key={c.id} className="glass-card p-6 cursor-pointer hover:border-cyan-500/30 border border-transparent transition-all hover:scale-[1.02]" onClick={() => navigate(`/classrooms/${c.id}`)}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-600/20 flex items-center justify-center"><School className="w-5 h-5 text-cyan-400" /></div>
-                  <h3 className="font-display font-semibold text-white">{c.name}</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-600/20 flex items-center justify-center"><School className="w-5 h-5 text-cyan-400" /></div>
+                    <h3 className="font-display font-semibold text-white">{c.name}</h3>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setEditClassroom(c); setEditName(c.name); }}
+                    className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm"><span className="text-slate-400">Alunos</span><span className="text-white font-medium">{count}</span></div>
@@ -76,6 +97,16 @@ export default function ClassroomsPage() {
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setShowCreate(false)} className="btn-secondary">Cancelar</button>
             <button type="submit" className="btn-primary">Criar</button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={!!editClassroom} onClose={() => setEditClassroom(null)} title="Renomear Turma">
+        <form onSubmit={handleEdit} className="space-y-4">
+          <div><label className="block text-sm text-slate-400 mb-1.5">Nome da Turma</label><input className="input-field" value={editName} onChange={(e) => setEditName(e.target.value)} required /></div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setEditClassroom(null)} className="btn-secondary">Cancelar</button>
+            <button type="submit" className="btn-primary">Salvar</button>
           </div>
         </form>
       </Modal>
