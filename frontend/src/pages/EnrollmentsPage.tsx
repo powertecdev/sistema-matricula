@@ -296,7 +296,7 @@ export default function EnrollmentsPage() {
               <option value="">Selecione...</option>
               {classrooms.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} ({c._count?.enrollments || 0}/{c.maxCapacity})
+                  {c.name} ({c._count?.enrollments || 0} alunos)
                 </option>
               ))}
             </select>
