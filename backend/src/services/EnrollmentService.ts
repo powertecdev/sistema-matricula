@@ -32,11 +32,6 @@ export class EnrollmentService {
       throw new ConflictError("Aluno já possui matrícula ativa nesta turma");
     }
 
-    const activeCount = await this.enrollmentRepo.countActiveByClassroom(data.classroomId);
-    if (activeCount >= classroom.maxCapacity) {
-      throw new ValidationError(`Turma "${classroom.name}" atingiu o limite de ${classroom.maxCapacity} vagas`);
-    }
-
     return this.enrollmentRepo.create(data);
   }
 
